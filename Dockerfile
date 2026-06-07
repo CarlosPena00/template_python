@@ -1,42 +1,37 @@
 # file: Dockerfile
-FROM python:3.11-slim-bullseye as base
+FROM python:3.14-slim AS base
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 ENV \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1 \
     PYTHONHASHSEED=random \
-    PIP_DEFAULT_TIMEOUT=100 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PIP_NO_CACHE_DIR=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/venv
 
-# venv
-RUN python -m venv /venv
 ENV PATH=/venv/bin:$PATH
-
-# base dependencies
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-RUN pip install build
 
 WORKDIR /src
 
+# prod dependencies (no project source yet — maximizes layer cache)
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-dev --no-install-project
+
 # --- dev stage ------------------------------------------------------------------------
-FROM base as dev
+FROM base AS dev
 
-# dev-only dependencies
-COPY requirements-dev.txt .
-RUN pip install -r requirements-dev.txt
-
+# add dev dependencies
+RUN uv sync --locked --no-install-project
 COPY src /src/src
-COPY setup.* /src/
-RUN pip install . --use-pep517 --no-deps
+RUN uv sync --locked
 
 # --- runtime stage --------------------------------------------------------------------
-FROM base as runtime
+FROM base AS runtime
 
 COPY src /src/src
-COPY setup.* /src/
-RUN pip install . --use-pep517 --no-deps
+RUN uv sync --locked --no-dev
 COPY scripts /src/scripts
-CMD ["sh", "scripts/01_start_uvicorn.sh"]
+CMD ["sh", "scripts/00_start_uvicorn.sh"]
