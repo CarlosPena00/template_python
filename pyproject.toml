@@ -22,12 +22,29 @@ dev = [
     "jupyterlab>=4.5.8",
     "jupyterlab-code-formatter>=3.0.3",
     "jupyterlab-execute-time>=3.3.0",
+    "mypy>=2.1.0",
     "node>=2.0.0",
     "nodejs>=0.1.1",
     "npm>=0.1.1",
     "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
 ]
+
+
+[tool.mypy]
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+show_error_codes = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+check_untyped_defs = false
+warn_return_any = false
 
 [tool.coverage.run]
 plugins = ["covdefaults"]
