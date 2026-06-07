@@ -15,6 +15,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black>=26.5.1",
+    "covdefaults>=2.3.0",
+    "coverage>=7.14.1",
     "ipykernel>=7.2.0",
     "isort>=8.0.1",
     "jupyterlab>=4.5.8",
@@ -23,4 +25,12 @@ dev = [
     "node>=2.0.0",
     "nodejs>=0.1.1",
     "npm>=0.1.1",
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
 ]
+
+[tool.coverage.run]
+plugins = ["covdefaults"]
+
+[tool.coverage.report]
+fail_under = 95
